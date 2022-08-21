@@ -1,0 +1,32 @@
+.block {
+  height: var(--block-size);
+  width: var(--block-size);
+  box-shadow: 0 0 0 0 black;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.block::after {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 1px solid red;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+}
+
+.block::before {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 1px solid red;
+  position: absolute;
+  top: calc(-50% - 1px);
+  left: calc(-50% - 1px);
+}

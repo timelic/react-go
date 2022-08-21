@@ -1,0 +1,39 @@
+:root {
+  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+  background-color: #ffecaf;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+body {
+  --block-size: 40px;
+  --piece-size: 20px;
+}
+
+/* 整体 让棋盘不要有多余的线条 */
+.row:first-of-type .block::before {
+  border-right: none;
+}
+.row:last-of-type .block::after {
+  border-left: none;
+}
+.block:first-of-type::before {
+  border-bottom: none;
+}
+.block:last-of-type::after {
+  border-top: none;
+}
