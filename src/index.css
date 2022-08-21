@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@600&display=swap");
+
 body {
   margin: 0;
   min-width: 320px;
@@ -16,16 +18,12 @@ body {
   -webkit-text-size-adjust: 100%;
 }
 
-#root {
-  display: flex;
-  flex-direction: row;
-}
-
 body {
   --block-size: 40px;
   --piece-size: 33px;
   --color-table-bg: #c8905b;
   --color-table-border: #000;
+  --table-padding: 5px;
 }
 
 /* 整体 让棋盘不要有多余的线条 */

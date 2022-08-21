@@ -1,7 +1,6 @@
-import { FC, useState } from "react";
-import { cloneDeep } from "lodash";
+import { FC } from "react";
 import { PieceState } from "@types";
-import { shouldShowStar, updateTable } from "@utils";
+import { shouldShowStar } from "@utils";
 import { Block } from "../";
 import "./index.scss";
 
