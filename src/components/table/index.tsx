@@ -1,6 +1,8 @@
 import { FC, useState } from "react";
-import { Block } from "../";
+import { cloneDeep } from "lodash";
 import { PieceState } from "@types";
+import { updateTable } from "@utils";
+import { Block } from "../";
 import "./index.scss";
 
 const ROW_AMOUNT = 5;
@@ -20,9 +22,9 @@ export const Table: FC = () => {
 
   const handleClick = (i: number, j: number) => () => {
     if (blocks[i][j] !== PieceState.None) return;
-    const tmp = [...blocks];
+    const tmp = cloneDeep(blocks);
     tmp[i][j] = next;
-    setBlocks(tmp);
+    setBlocks(updateTable(tmp));
     setNext(next === PieceState.Black ? PieceState.White : PieceState.Black);
   };
 

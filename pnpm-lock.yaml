@@ -1,9 +1,11 @@
 lockfileVersion: 5.4
 
 specifiers:
+  '@types/lodash': ^4.14.184
   '@types/react': ^18.0.17
   '@types/react-dom': ^18.0.6
   '@vitejs/plugin-react': ^2.0.1
+  lodash: ^4.17.21
   react: ^18.2.0
   react-dom: ^18.2.0
   sass: ^1.54.5
@@ -12,10 +14,12 @@ specifiers:
   vite-tsconfig-paths: ^3.5.0
 
 dependencies:
+  lodash: registry.npmmirror.com/lodash/4.17.21
   react: registry.npmmirror.com/react/18.2.0
   react-dom: registry.npmmirror.com/react-dom/18.2.0_react@18.2.0
 
 devDependencies:
+  '@types/lodash': registry.npmmirror.com/@types/lodash/4.14.184
   '@types/react': registry.npmmirror.com/@types/react/18.0.17
   '@types/react-dom': registry.npmmirror.com/@types/react-dom/18.0.6
   '@vitejs/plugin-react': registry.npmmirror.com/@vitejs/plugin-react/2.0.1_vite@3.0.9
@@ -422,6 +426,12 @@ packages:
     dependencies:
       '@jridgewell/resolve-uri': registry.npmmirror.com/@jridgewell/resolve-uri/3.1.0
       '@jridgewell/sourcemap-codec': registry.npmmirror.com/@jridgewell/sourcemap-codec/1.4.14
+    dev: true
+
+  registry.npmmirror.com/@types/lodash/4.14.184:
+    resolution: {integrity: sha512-RoZphVtHbxPZizt4IcILciSWiC6dcn+eZ8oX9IWEYfDMcocdd42f7NPI6fQj+6zI8y4E0L7gu2pcZKLGTRaV9Q==, registry: http://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@types/lodash/-/lodash-4.14.184.tgz}
+    name: '@types/lodash'
+    version: 4.14.184
     dev: true
 
   registry.npmmirror.com/@types/prop-types/15.7.5:
@@ -1012,6 +1022,12 @@ packages:
     engines: {node: '>=6'}
     hasBin: true
     dev: true
+
+  registry.npmmirror.com/lodash/4.17.21:
+    resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==, registry: http://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/lodash/-/lodash-4.17.21.tgz}
+    name: lodash
+    version: 4.17.21
+    dev: false
 
   registry.npmmirror.com/loose-envify/1.4.0:
     resolution: {integrity: sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==, registry: http://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/loose-envify/-/loose-envify-1.4.0.tgz}
