@@ -1,3 +1,27 @@
 .row {
   display: flex;
 }
+
+#table {
+  padding: 5px;
+  background-size: cover;
+  position: relative;
+  box-shadow: rgb(0 0 0 / 25%) 0px 14px 28px, #bb790028 0px 10px 10px,
+    0 0 7px 0 #5a3600c5;
+  --border-radius: 10px;
+  border-radius: var(--border-radius);
+}
+
+#table::after {
+  border-radius: var(--border-radius);
+  content: "";
+  display: block;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: -1;
+  filter: brightness(1.1) saturate(0.9) opacity(0.6);
+  background-image: url(../../assets/table-bg.jpg);
+}
