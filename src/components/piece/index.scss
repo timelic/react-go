@@ -8,13 +8,11 @@
 }
 
 .black {
-  background: radial-gradient(
-    circle at 50% 120%,
-    #979797,
-    #929292 10%,
-    #2f2f30 80%,
-    #062745 100%
-  );
+  background: radial-gradient(circle at 50% 120%,
+      #979797,
+      #929292 10%,
+      #2f2f30 80%,
+      #062745 100%);
   filter: brightness(0.8) contrast(1.2);
   box-shadow: 0 0 8px -5px black, 0 0 2px 0 #3d3d3d;
 }
@@ -27,11 +25,9 @@
   width: 90%;
   height: 90%;
   border-radius: 50%;
-  background: radial-gradient(
-    circle at 50% 0px,
-    #a3a3a3,
-    rgba(255, 255, 255, 0) 58%
-  );
+  background: radial-gradient(circle at 50% 0px,
+      #a3a3a3,
+      rgba(255, 255, 255, 0) 58%);
   filter: blur(3px);
   z-index: 2;
 }
