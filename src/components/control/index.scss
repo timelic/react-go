@@ -2,6 +2,8 @@
   height: calc(var(--table-padding) * 2 + var(--block-size) * 19);
   margin-left: 40px;
   flex-grow: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 h1 {
@@ -12,10 +14,12 @@ h1 {
 .count {
   display: flex;
   align-items: center;
-  margin: 20px 0;
+  margin: 10px 0;
+
   .piece {
     margin-right: 10px;
   }
+
   .cnt {
     font-size: larger;
     font-family: "Cinzel", serif;
