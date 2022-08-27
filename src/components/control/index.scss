@@ -14,7 +14,8 @@ h1 {
 .count {
   display: flex;
   align-items: center;
-  margin: 10px 0;
+  margin-right: 15px;
+  min-width: 65px;
 
   .piece {
     margin-right: 10px;

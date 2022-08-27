@@ -1,6 +1,6 @@
 import { FC } from "react";
-import { Piece } from "../";
 import { PieceState } from "@types";
+import { Piece } from "../";
 import "./index.scss";
 
 interface Props {
@@ -9,7 +9,7 @@ interface Props {
   showStar: boolean;
 }
 
-export const Block: FC<Props> = ({ pieceState, handleClick, showStar }) => {
+export const Block: FC<Props> = ({ pieceState, showStar, handleClick }) => {
   return (
     <div className="block" onClick={handleClick}>
       {/* 天元 */}
