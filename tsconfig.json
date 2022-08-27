@@ -19,7 +19,8 @@
       "@components": ["./src/components"],
       "@types": ["./src/types"],
       "@utils": ["./src/utils"],
-      "@api": ["./src/api"]
+      "@api": ["./src/api"],
+      "@store": ["./src/store"]
     }
   },
   "include": ["src"],
