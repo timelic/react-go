@@ -34,3 +34,8 @@ export enum PlayingLifeCycle {
   WaitingOpponent = "WaitingOpponent",
   WaitingResp = "WaitingResp",
 }
+
+export interface BoardChangeInfo {
+  board: Board;
+  isCauseByMe: boolean;
+}

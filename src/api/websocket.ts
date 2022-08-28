@@ -2,12 +2,15 @@ import { io } from "socket.io-client";
 import { eventbus } from "@api";
 import {
   Board,
+  BoardChangeInfo,
   inviteResponse,
   LifeCycle,
   PieceState,
   Player,
   PlayingLifeCycle,
 } from "@types";
+
+// TODO 这里很多 on 可改成 once
 
 class WS {
   private socket: ReturnType<typeof io> = null as any;
@@ -49,7 +52,7 @@ class WS {
    * 准备接受邀请
    */
   private onInvite() {
-    this.socket.on("invite_ask", () => {
+    this.socket.once("invite_ask", () => {
       // 思考要不要接受
       changeLifeCycle(LifeCycle.Considering);
     });
@@ -65,14 +68,19 @@ class WS {
    * 服务器宣布开始游戏
    */
   private onStart() {
-    this.socket.on("start", (resp: inviteResponse) => {
+    this.socket.once("start", (resp: inviteResponse) => {
       if (resp.isAccepted) {
         changeLifeCycle(LifeCycle.Playing);
         // 接受了 开始游戏
         // 分配黑白
         eventbus.emit("update:my_color", resp.colorAssigned);
-        // 黑色 我可以下棋
-        resp.colorAssigned === PieceState.Black && this.onCanTakeAction();
+        if (resp.colorAssigned === PieceState.Black) {
+          // 黑色 我可以下棋
+          this.onCanTakeAction();
+        } else {
+          // 白色 等待对面下棋
+          this.onWaitingOpponent();
+        }
       } else {
         // 拒绝了
         changeLifeCycle(LifeCycle.Registered);
@@ -82,27 +90,53 @@ class WS {
   /**
    * 我方落子
    */
-  action() {
-    this.socket.emit("action", {} as { i: number; j: number });
+  action(i: number, j: number) {
+    this.socket.emit("action", {
+      i,
+      j,
+    });
+    changePlayingLifeCycle(PlayingLifeCycle.WaitingResp);
     // 设定一个状态不准落子了
+    eventbus.emit("update:is_my_turn", false);
     // 落子完成 听局面变化
+    this.onBoardChange();
   }
   /**
    * 轮到我方落子
    */
   private onCanTakeAction() {
-    this.socket.on("can_take_action", () => {
+    changePlayingLifeCycle(PlayingLifeCycle.Thinking);
+    this.socket.once("can_take_action", () => {
       // 设定一个状态可以落子
+      eventbus.emit("update:is_my_turn", true);
     });
+  }
+  /**
+   * 等待对方落子
+   */
+  private onWaitingOpponent() {
+    changePlayingLifeCycle(PlayingLifeCycle.WaitingOpponent);
+    this.onBoardChange();
   }
   /**
    * 监听局面变化
    */
   private onBoardChange() {
-    this.socket.on("board_change", ({ board }: { board: Board }) => {
-      // 更新局面
-      eventbus.emit("update:board", { board });
-    });
+    this.socket.once(
+      "board_change",
+      ({ board, isCauseByMe }: BoardChangeInfo) => {
+        // 更新局面
+        eventbus.emit("update:board", { board });
+        if (isCauseByMe) {
+          // 我落子导致的
+          changePlayingLifeCycle(PlayingLifeCycle.WaitingOpponent);
+          this.onBoardChange(); // 继续监听局面变化
+        } else {
+          // 对方落子导致的
+          changePlayingLifeCycle(PlayingLifeCycle.Thinking);
+        }
+      }
+    );
   }
 }
 export const ws = new WS();
@@ -111,12 +145,12 @@ export const ws = new WS();
  * 修改生命周期
  */
 function changeLifeCycle(lifeCycle: LifeCycle) {
-  eventbus.emit("update:life_cycle", lifeCycle); // 生命周期 -> registered
+  eventbus.emit("update:life_cycle", lifeCycle);
 }
 
 /**
  * 修改对局的生命周期
  */
 function changePlayingLifeCycle(playingLifeCycle: PlayingLifeCycle) {
-  eventbus.emit("update:playing_life_cycle", playingLifeCycle); // 生命周期 -> registered
+  eventbus.emit("update:playing_life_cycle", playingLifeCycle);
 }
