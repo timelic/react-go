@@ -1,12 +1,13 @@
-import { PieceState } from "@types";
+import { PieceState, Board, History } from "@types";
 import { cloneDeep } from "lodash";
 import { createContext, Dispatch, FC, SetStateAction, useState } from "react";
+import { eventbus } from "@api";
 
 const ROW_AMOUNT = 19;
 
 interface ContextType {
-  history: PieceState[][][];
-  board: PieceState[][];
+  history: History;
+  board: Board;
   next: PieceState.Black | PieceState.White;
   setHistory: Dispatch<SetStateAction<ContextType["history"]>>;
   setBoard: Dispatch<SetStateAction<ContextType["board"]>>;
@@ -40,8 +41,20 @@ export const Store: FC<{
     next,
     setNext,
   };
-
+  setStoreActions(defaultContextValue);
   return (
     <Context.Provider value={defaultContextValue}>{children}</Context.Provider>
   );
 };
+
+/**
+ * 设置仓库的 action ，使得可以被外界的 ts 修改
+ */
+function setStoreActions({ setBoard, setHistory }: ContextType) {
+  eventbus.on("update:board", (board: Board) => {
+    setBoard(board);
+  });
+  eventbus.on("update:history", (history: History) => {
+    setHistory(history);
+  });
+}
