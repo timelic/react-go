@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { PieceState } from "@types";
-import { Piece } from "../";
+import { Piece } from "@components";
 import "./index.scss";
 
 interface Props {

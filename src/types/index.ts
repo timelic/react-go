@@ -3,3 +3,6 @@ export enum PieceState {
   White = "white",
   None = "none",
 }
+
+export type Board = PieceState[][];
+export type History = Board[];
