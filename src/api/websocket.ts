@@ -1,23 +1,23 @@
 import { io } from "socket.io-client";
 import { eventbus } from "@api";
-import type { Board } from "@types";
+import {
+  Board,
+  inviteResponse,
+  LifeCycle,
+  PieceState,
+  Player,
+  PlayingLifeCycle,
+} from "@types";
 
 class WS {
   private socket: ReturnType<typeof io> = null as any;
   private PORT = 3000;
   /**
-   * 必须先手动 init
-   */
-  init() {
-    this.socket = io(`ws:o//localhost:${this.PORT}`);
-    this.socket.on("s2c", function (data) {
-      console.log(data);
-    });
-  }
-  /**
+   * 连接服务器
    * 在服务器注册一个玩家
    */
   register() {
+    this.socket = io(`ws:o//localhost:${this.PORT}`);
     this.socket.emit("register");
     this.onOnlinePlayer();
   }
@@ -27,35 +27,56 @@ class WS {
   private onOnlinePlayer() {
     this.socket.on(
       "online_players",
-      ({ online_players }: { online_players: any }) => {
-        // 把信息存到某个地方
-        this.onAccept(); // 准备好接受邀请
+      ({ onlinePlayers }: { onlinePlayers: Player[] }) => {
+        eventbus.emit("update:online_players", onlinePlayers); // 把信息存到 store
+        this.onInvite(); // 准备好接受邀请
+        changeLifeCycle(LifeCycle.Registered); // 生命周期 -> registered
       }
     );
   }
   /**
    * 邀约：A 邀请 B玩游戏
    */
-  invite() {
+  invite(opponentId: Player["id"]) {
     this.socket.emit("invite", {
-      opponentId: "",
+      opponentId,
     });
-    this.socket.on("invite_res", () => {});
+    changeLifeCycle(LifeCycle.Inviting); // 生命周期 -> inviting
+    // 等待游戏开始吧 or 对方进行一个拒绝
     this.onStart();
   }
   /**
    * 准备接受邀请
    */
-  private onAccept() {
-    this.socket.on("invite_ask", () => {});
+  private onInvite() {
+    this.socket.on("invite_ask", () => {
+      // 思考要不要接受
+      changeLifeCycle(LifeCycle.Considering);
+    });
+  }
+  /**
+   * 接受 or 拒绝
+   */
+  sendInviteResult(isAccepted: boolean) {
+    this.socket.emit("invite_result", isAccepted);
+    changeLifeCycle(LifeCycle.WaitingToStart);
   }
   /**
    * 服务器宣布开始游戏
    */
   private onStart() {
-    this.socket.on("start", () => {
-      // 分配黑白
-      this.onCanTakeAction();
+    this.socket.on("start", (resp: inviteResponse) => {
+      if (resp.isAccepted) {
+        changeLifeCycle(LifeCycle.Playing);
+        // 接受了 开始游戏
+        // 分配黑白
+        eventbus.emit("update:my_color", resp.colorAssigned);
+        // 黑色 我可以下棋
+        resp.colorAssigned === PieceState.Black && this.onCanTakeAction();
+      } else {
+        // 拒绝了
+        changeLifeCycle(LifeCycle.Registered);
+      }
     });
   }
   /**
@@ -84,5 +105,18 @@ class WS {
     });
   }
 }
-
 export const ws = new WS();
+
+/**
+ * 修改生命周期
+ */
+function changeLifeCycle(lifeCycle: LifeCycle) {
+  eventbus.emit("update:life_cycle", lifeCycle); // 生命周期 -> registered
+}
+
+/**
+ * 修改对局的生命周期
+ */
+function changePlayingLifeCycle(playingLifeCycle: PlayingLifeCycle) {
+  eventbus.emit("update:playing_life_cycle", playingLifeCycle); // 生命周期 -> registered
+}

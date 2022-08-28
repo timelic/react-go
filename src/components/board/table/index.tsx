@@ -2,13 +2,19 @@ import { FC, useContext } from "react";
 import { PieceState } from "@types";
 import { shouldShowStar, updateTable } from "@utils";
 import { Block } from "../";
-import { Context } from "@store";
+import { ctx } from "@store";
 import { cloneDeep } from "lodash";
 import "./index.scss";
 
 export const Table: FC = () => {
-  const { board, setBoard, next, setNext, history, setHistory } =
-    useContext(Context);
+  const {
+    board,
+    setBoard,
+    myColor: next,
+    setMyColor: setNext,
+    history,
+    setHistory,
+  } = useContext(ctx);
 
   const pushHistory = (newBoard: typeof board) =>
     setHistory([...history, newBoard]);
