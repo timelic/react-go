@@ -21,8 +21,7 @@ export interface inviteResponse {
 }
 
 export enum LifeCycle {
-  NotConnected = "NotConnected", // 未连接
-  Registered = "Registered",
+  Online = "Online",
   Inviting = "Inviting",
   Playing = "Playing",
   Considering = "Considering",
