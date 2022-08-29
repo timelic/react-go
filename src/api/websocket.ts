@@ -1,5 +1,7 @@
 import { io } from "socket.io-client";
 import { eventbus } from "@api";
+import type EventEmitter from "eventemitter3";
+
 import {
   Board,
   BoardChangeInfo,
@@ -12,17 +14,26 @@ import {
 
 // TODO 这里很多 on 可改成 once
 
-class WS {
+export class WS {
   private socket: ReturnType<typeof io> = null as any;
   private PORT = 3000;
+  private hasInited = false;
   /**
    * 连接服务器
    * 在服务器注册一个玩家
    */
-  register() {
+  constructor() {
     this.socket = io(`ws:o//localhost:${this.PORT}`);
     this.socket.emit("register");
     this.onOnlinePlayer();
+  }
+  /**
+   * init 写成 constructor 会有 bug
+   */
+  init() {
+    if (this.hasInited) return;
+    this.hasInited = true;
+    this.changeLifeCycle(LifeCycle.Online);
   }
   /**
    * 接受所有在线玩家
@@ -33,7 +44,6 @@ class WS {
       ({ onlinePlayers }: { onlinePlayers: Player[] }) => {
         eventbus.emit("update:online_players", onlinePlayers); // 把信息存到 store
         this.onInvite(); // 准备好接受邀请
-        changeLifeCycle(LifeCycle.Registered); // 生命周期 -> registered
       }
     );
   }
@@ -44,7 +54,7 @@ class WS {
     this.socket.emit("invite", {
       opponentId,
     });
-    changeLifeCycle(LifeCycle.Inviting); // 生命周期 -> inviting
+    this.changeLifeCycle(LifeCycle.Inviting); // 生命周期 -> inviting
     // 等待游戏开始吧 or 对方进行一个拒绝
     this.onStart();
   }
@@ -54,7 +64,7 @@ class WS {
   private onInvite() {
     this.socket.once("invite_ask", () => {
       // 思考要不要接受
-      changeLifeCycle(LifeCycle.Considering);
+      this.changeLifeCycle(LifeCycle.Considering);
     });
   }
   /**
@@ -62,7 +72,7 @@ class WS {
    */
   sendInviteResult(isAccepted: boolean) {
     this.socket.emit("invite_result", isAccepted);
-    changeLifeCycle(LifeCycle.WaitingToStart);
+    this.changeLifeCycle(LifeCycle.WaitingToStart);
   }
   /**
    * 服务器宣布开始游戏
@@ -70,7 +80,7 @@ class WS {
   private onStart() {
     this.socket.once("start", (resp: inviteResponse) => {
       if (resp.isAccepted) {
-        changeLifeCycle(LifeCycle.Playing);
+        this.changeLifeCycle(LifeCycle.Playing);
         // 接受了 开始游戏
         // 分配黑白
         eventbus.emit("update:my_color", resp.colorAssigned);
@@ -83,7 +93,7 @@ class WS {
         }
       } else {
         // 拒绝了
-        changeLifeCycle(LifeCycle.Registered);
+        this.changeLifeCycle(LifeCycle.Online);
       }
     });
   }
@@ -95,7 +105,7 @@ class WS {
       i,
       j,
     });
-    changePlayingLifeCycle(PlayingLifeCycle.WaitingResp);
+    this.changePlayingLifeCycle(PlayingLifeCycle.WaitingResp);
     // 设定一个状态不准落子了
     eventbus.emit("update:is_my_turn", false);
     // 落子完成 听局面变化
@@ -105,7 +115,7 @@ class WS {
    * 轮到我方落子
    */
   private onCanTakeAction() {
-    changePlayingLifeCycle(PlayingLifeCycle.Thinking);
+    this.changePlayingLifeCycle(PlayingLifeCycle.Thinking);
     this.socket.once("can_take_action", () => {
       // 设定一个状态可以落子
       eventbus.emit("update:is_my_turn", true);
@@ -115,7 +125,7 @@ class WS {
    * 等待对方落子
    */
   private onWaitingOpponent() {
-    changePlayingLifeCycle(PlayingLifeCycle.WaitingOpponent);
+    this.changePlayingLifeCycle(PlayingLifeCycle.WaitingOpponent);
     this.onBoardChange();
   }
   /**
@@ -129,28 +139,28 @@ class WS {
         eventbus.emit("update:board", { board });
         if (isCauseByMe) {
           // 我落子导致的
-          changePlayingLifeCycle(PlayingLifeCycle.WaitingOpponent);
+          this.changePlayingLifeCycle(PlayingLifeCycle.WaitingOpponent);
           this.onBoardChange(); // 继续监听局面变化
         } else {
           // 对方落子导致的
-          changePlayingLifeCycle(PlayingLifeCycle.Thinking);
+          this.changePlayingLifeCycle(PlayingLifeCycle.Thinking);
         }
       }
     );
   }
+  /**
+   * 修改生命周期
+   */
+  private changeLifeCycle(lifeCycle: LifeCycle) {
+    eventbus.emit("update:life_cycle", lifeCycle);
+  }
+
+  /**
+   * 修改对局的生命周期
+   */
+  private changePlayingLifeCycle(playingLifeCycle: PlayingLifeCycle) {
+    eventbus.emit("update:playing_life_cycle", playingLifeCycle);
+  }
 }
+
 export const ws = new WS();
-
-/**
- * 修改生命周期
- */
-function changeLifeCycle(lifeCycle: LifeCycle) {
-  eventbus.emit("update:life_cycle", lifeCycle);
-}
-
-/**
- * 修改对局的生命周期
- */
-function changePlayingLifeCycle(playingLifeCycle: PlayingLifeCycle) {
-  eventbus.emit("update:playing_life_cycle", playingLifeCycle);
-}

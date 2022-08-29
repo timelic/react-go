@@ -48,7 +48,7 @@ export const Store: FC<{
   );
   const [isMyTurn, setIsMyTurn] = useState(true);
   const [onlinePlayers, setOnlinePlayers] = useState<Player[]>([]);
-  const [lifeCycle, setLifeCycle] = useState<LifeCycle>(LifeCycle.NotConnected);
+  const [lifeCycle, setLifeCycle] = useState<LifeCycle>(LifeCycle.Online);
   const [playingLifeCycle, setPlayingLifeCycle] = useState<PlayingLifeCycle>(
     PlayingLifeCycle.Thinking
   );
