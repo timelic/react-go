@@ -24,12 +24,15 @@ export const Table: FC = () => {
    */
   const handleClick = (i: number, j: number) => () => {
     if (board[i][j] !== PieceState.None) return;
-    const tmp = cloneDeep(board);
-    tmp[i][j] = next;
-    const newBlock = updateTable(tmp);
-    setBoard(newBlock);
+    // const tmp = cloneDeep(board);
+    // tmp[i][j] = next;
+    // const newBlock = updateTable(tmp, i, j);
+    // setBoard(newBlock);
+
+    // 更新棋盘，如果返回false如果该地方没气且没吃掉敌人的子，则该地方不能下
+    if (!updateTable(board, i, j, next)) return
     setNext(next === PieceState.Black ? PieceState.White : PieceState.Black);
-    pushHistory(newBlock); // 记录历史
+    pushHistory(cloneDeep(board)); // 记录历史
   };
 
   /**

@@ -34,27 +34,81 @@ function getLiberties(
   return [helper(i, j), dp];
 }
 
+function checkOutOfBounds(i: number, j: number, blocks: PieceState[][]) {
+  return i < 0 || i >= blocks.length || j < 0 || j >= blocks[0].length;
+}
+
+const di = [-1, 0, 1, 0]
+const dj = [0, -1, 0, 1]
+/**
+ * @function 广度优先搜索判断当前位置及周边位置是否无气
+ * @return 是否有气
+ */
+function bfs (i: number, j: number, blocks: PieceState[][], isReplace: boolean): boolean {
+  // 出界返回true
+  if (checkOutOfBounds(i, j, blocks)) return true
+  // 当前点类型
+  const p: PieceState = blocks[i][j]
+  // 要遍历坐标的数组
+  const array:[number, number][] = [[i, j]]
+  for (let pos of array) {
+    // 出界按无气算，继续遍历
+    if (checkOutOfBounds(pos[0], pos[1], blocks)) continue
+    // 发现空则必定存在气，返回true
+    if (blocks[pos[0]][pos[1]] === PieceState.None) return true
+    // 如果依然是对方的类型则继续遍历
+    if (blocks[pos[0]][pos[1]] !== p) continue
+    // 如果是自己的类型则向四周遍历
+    for (let i = 0; i < 4; i++) {
+      array.push([pos[0] + di[i], pos[1] + dj[i]])
+    }
+  }
+  // 走到这里说明无气，数组内的所有地址替换为空
+  if (isReplace) {
+    for (let pos of array) {
+      // 出界和是对方类型的跳过
+      if (checkOutOfBounds(pos[0], pos[1], blocks) || blocks[pos[0]][pos[1]] !== p) continue
+      blocks[pos[0]][pos[1]] = PieceState.None
+    }
+  }
+  return false
+}
+
 /**
  * 更新整个棋盘
  */
-export function updateTable(blocks: PieceState[][]): PieceState[][] {
+export function updateTable(blocks: PieceState[][], i: number, j: number, p: PieceState): boolean {
   // true false 表示已经遍历过并且标记是否要删除 false 是删除
   // undefined 指的是还没有遍历到
-  const dp: Record<string, boolean | undefined> = {};
-  for (let i = 0; i < blocks.length; i++) {
-    for (let j = 0; j < blocks[0].length; j++) {
-      if (dp[genKey(i, j)] !== undefined) continue;
-      const [liberties, localDp] = getLiberties(i, j, blocks);
-      // 将局部的 dp 放进整体的 dp，省下几次 BFS
-      Object.keys(localDp).forEach((key) => (dp[key] = liberties > 0));
-    }
-  }
+  // const dp: Record<string, boolean | undefined> = {};
+  // for (let i = 0; i < blocks.length; i++) {
+  //   for (let j = 0; j < blocks[0].length; j++) {
+  //     if (dp[genKey(i, j)] !== undefined) continue;
+  //     const [liberties, localDp] = getLiberties(i, j, blocks);
+  //     // 将局部的 dp 放进整体的 dp，省下几次 BFS
+  //     Object.keys(localDp).forEach((key) => (dp[key] = liberties > 0));
+  //   }
+  // }
+  //
+  // const res = [...blocks];
+  // Object.entries(dp).forEach(([key, value]) => {
+  //   if (value !== false) return; // 没气了才删掉
+  //   const [i, j] = key.split(":").map((n) => parseInt(n));
+  //   res[i][j] = PieceState.None;
+  // });
 
-  const res = [...blocks];
-  Object.entries(dp).forEach(([key, value]) => {
-    if (value !== false) return; // 没气了才删掉
-    const [i, j] = key.split(":").map((n) => parseInt(n));
-    res[i][j] = PieceState.None;
-  });
-  return res;
+  // 暂时允许下该步
+  blocks[i][j] = p
+  // 四周的区域是否有气
+  let hasLiberty: boolean = true
+  // 检查四周
+  for (let k = 0; k < 4; k++) {
+    // 四周的区域任意一个区域无气了则代表存在吃棋
+    hasLiberty = bfs(i + di[k], j + dj[k], blocks, true) && hasLiberty
+  }
+  // 周围存在无气则吃棋了，直接返回true；没有吃棋操作则要检查当前区域是否有气，有气则返回true
+  if (!hasLiberty || bfs(i, j, blocks, false)) return true
+  // 无气重置该位置，返回false
+  blocks[i][j] = PieceState.None
+  return false
 }
