@@ -1,3 +1,5 @@
+export * from "./event";
+
 export enum PieceState {
   Black = "black",
   White = "white",

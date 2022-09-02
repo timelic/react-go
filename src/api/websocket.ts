@@ -1,6 +1,5 @@
 import { io } from "socket.io-client";
 import { eventbus } from "@api";
-import type EventEmitter from "eventemitter3";
 
 import {
   Board,
@@ -14,6 +13,8 @@ import {
 
 // TODO 这里很多 on 可改成 once
 
+const name = document.domain;
+
 export class WS {
   private socket: ReturnType<typeof io> = null as any;
   private PORT = 3000;
@@ -23,8 +24,8 @@ export class WS {
    * 在服务器注册一个玩家
    */
   constructor() {
-    this.socket = io(`ws:o//localhost:${this.PORT}`);
-    this.socket.emit("register");
+    this.socket = io(`ws://localhost:${this.PORT}`);
+    this.socket.emit("register", { name });
     this.onOnlinePlayer();
   }
   /**
@@ -42,8 +43,10 @@ export class WS {
     this.socket.on(
       "online_players",
       ({ onlinePlayers }: { onlinePlayers: Player[] }) => {
+        console.log({ onlinePlayers });
         eventbus.emit("update:online_players", onlinePlayers); // 把信息存到 store
         this.onInvite(); // 准备好接受邀请
+        this.onInviteResult();
       }
     );
   }
@@ -51,9 +54,7 @@ export class WS {
    * 邀约：A 邀请 B玩游戏
    */
   invite(opponentId: Player["id"]) {
-    this.socket.emit("invite", {
-      opponentId,
-    });
+    this.socket.emit("invite", opponentId);
     this.changeLifeCycle(LifeCycle.Inviting); // 生命周期 -> inviting
     // 等待游戏开始吧 or 对方进行一个拒绝
     this.onStart();
@@ -62,9 +63,10 @@ export class WS {
    * 准备接受邀请
    */
   private onInvite() {
-    this.socket.once("invite_ask", () => {
+    this.socket.once("invite_ask", ({ name }: Player) => {
       // 思考要不要接受
       this.changeLifeCycle(LifeCycle.Considering);
+      eventbus.emit("show_model", name); // 显示一个是否接受的模态框
     });
   }
   /**
@@ -73,6 +75,20 @@ export class WS {
   sendInviteResult(isAccepted: boolean) {
     this.socket.emit("invite_result", isAccepted);
     this.changeLifeCycle(LifeCycle.WaitingToStart);
+  }
+  /**
+   * 被接受 or 被拒绝
+   */
+  private onInviteResult() {
+    this.socket.on("invite_result", (result: boolean) => {
+      console.log(`this.socket.on("invite_result"`);
+      eventbus.emit("invite_result", result);
+      if (result) {
+        this.changeLifeCycle(LifeCycle.Playing);
+      } else {
+        this.changeLifeCycle(LifeCycle.Online);
+      }
+    });
   }
   /**
    * 服务器宣布开始游戏
