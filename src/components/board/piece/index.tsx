@@ -5,13 +5,17 @@ import classNames from "classnames";
 
 export interface Props {
   color: PieceState;
+  size?: number;
 }
 
-export const Piece: FC<Props> = ({ color }) => {
+export const Piece: FC<Props> = ({ color, size }) => {
   return (
     <>
       {color !== PieceState.None && (
-        <span className={classNames("piece", color)} />
+        <span
+          style={{ "--piece-size": size } as any}
+          className={classNames("piece", color)}
+        />
       )}
     </>
   );

@@ -1,6 +1,6 @@
 .piece {
-  width: var(--piece-size);
-  height: var(--piece-size);
+  width: calc(var(--piece-size) * 1px);
+  height: calc(var(--piece-size) * 1px);
   display: block;
   border-radius: 50%;
   z-index: 10;

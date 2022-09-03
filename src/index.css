@@ -20,7 +20,7 @@ body {
 
 body {
   --block-size: 40px;
-  --piece-size: 33px;
+  --piece-size: 33;
   --color-table-bg: #c8905b;
   --color-table-border: #000;
   --table-padding: 5px;
@@ -38,4 +38,9 @@ body {
 }
 .block:last-of-type::after {
   border-top: none;
+}
+
+.semi-toast-content .semi-toast-content-text {
+  margin-top: auto;
+  margin-bottom: auto;
 }

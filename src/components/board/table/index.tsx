@@ -1,35 +1,23 @@
 import { FC, useContext } from "react";
-import { PieceState } from "@types";
-import { shouldShowStar, updateTable } from "@utils";
+import { LifeCycle, PieceState, PlayingLifeCycle } from "@types";
+import { canAction, shouldShowStar, updateTable } from "@utils";
 import { Block } from "../";
 import { ctx } from "@store";
 import { cloneDeep } from "lodash";
+import { ws } from "@api";
 import "./index.scss";
+import classNames from "classnames";
 
 export const Table: FC = () => {
-  const {
-    board,
-    setBoard,
-    myColor: next,
-    setMyColor: setNext,
-    history,
-    setHistory,
-  } = useContext(ctx);
-
-  const pushHistory = (newBoard: typeof board) =>
-    setHistory([...history, newBoard]);
+  const { board, lifeCycle, playingLifeCycle } = useContext(ctx);
 
   /**
    * 点击下棋
    */
   const handleClick = (i: number, j: number) => () => {
     if (board[i][j] !== PieceState.None) return;
-    const tmp = cloneDeep(board);
-    tmp[i][j] = next;
-    const newBlock = updateTable(tmp);
-    setBoard(newBlock);
-    setNext(next === PieceState.Black ? PieceState.White : PieceState.Black);
-    pushHistory(newBlock); // 记录历史
+    if (!canAction(lifeCycle, playingLifeCycle, true)) return;
+    ws.action(i, j);
   };
 
   /**
@@ -40,7 +28,12 @@ export const Table: FC = () => {
   );
 
   return (
-    <div id="table">
+    <div
+      id="table"
+      className={classNames({
+        "not-allowed": !canAction(lifeCycle, playingLifeCycle),
+      })}
+    >
       {_.map((_, i) => (
         <div className="row" key={i}>
           {_.map((_, j) => (

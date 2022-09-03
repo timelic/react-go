@@ -20,14 +20,16 @@ interface ContextType {
   setBoard: (data: ContextType["board"]) => void;
   myColor: PieceState.Black | PieceState.White;
   setMyColor: (data: ContextType["myColor"]) => void;
-  isMyTurn: boolean;
-  setIsMyTurn: (data: ContextType["isMyTurn"]) => void;
   onlinePlayers: Player[];
   setOnlinePlayers: (data: ContextType["onlinePlayers"]) => void;
   lifeCycle: LifeCycle;
   setLifeCycle: (data: ContextType["lifeCycle"]) => void;
   playingLifeCycle: PlayingLifeCycle;
   setPlayingLifeCycle: (data: ContextType["playingLifeCycle"]) => void;
+  opponent: Player;
+  setOpponent: (data: ContextType["opponent"]) => void;
+  me: Player;
+  setMe: (data: ContextType["me"]) => void;
 }
 
 export const initialBoard = new Array(ROW_AMOUNT)
@@ -43,31 +45,40 @@ export const Store: FC<{
   const [history, setHistory] = useState<PieceState[][][]>([
     cloneDeep(initialBoard),
   ]);
-  const [next, setNext] = useState<PieceState.Black | PieceState.White>(
+  const [myColor, setMyColor] = useState<PieceState.Black | PieceState.White>(
     PieceState.Black
   );
-  const [isMyTurn, setIsMyTurn] = useState(true);
   const [onlinePlayers, setOnlinePlayers] = useState<Player[]>([]);
   const [lifeCycle, setLifeCycle] = useState<LifeCycle>(LifeCycle.Online);
   const [playingLifeCycle, setPlayingLifeCycle] = useState<PlayingLifeCycle>(
     PlayingLifeCycle.Thinking
   );
+  const [opponent, setOpponent] = useState<Player>({
+    id: "",
+    name: "Opponent",
+  });
+  const [me, setMe] = useState<Player>({
+    id: "",
+    name: "Me",
+  });
 
   const defaultContextValue: ContextType = {
     history,
     setHistory,
     board,
     setBoard,
-    myColor: next,
-    setMyColor: setNext,
-    isMyTurn,
-    setIsMyTurn,
+    myColor,
+    setMyColor,
     onlinePlayers,
     setOnlinePlayers,
     lifeCycle,
     setLifeCycle,
     playingLifeCycle,
     setPlayingLifeCycle,
+    opponent,
+    setOpponent,
+    me,
+    setMe,
   };
   setStoreActions(defaultContextValue);
 
@@ -90,9 +101,6 @@ function setStoreActions(ctx: ContextType) {
       ctx.setMyColor(color);
     }
   );
-  eventbus.on("update:is_my_turn", (isMyTurn: boolean) => {
-    ctx.setIsMyTurn(isMyTurn);
-  });
   eventbus.on("update:online_players", (onlinePlayers: Player[]) => {
     ctx.setOnlinePlayers(onlinePlayers);
   });
@@ -103,5 +111,11 @@ function setStoreActions(ctx: ContextType) {
   eventbus.on("update:playing_life_cycle", (lifeCycle: PlayingLifeCycle) => {
     ctx.setPlayingLifeCycle(lifeCycle);
     console.log(`🍋 [playing life cycle]: ${lifeCycle}`);
+  });
+  eventbus.on("update:opponnet", (opponent: Player) => {
+    ctx.setOpponent(opponent);
+  });
+  eventbus.on("update:me", (me: Player) => {
+    ctx.setMe(me);
   });
 }

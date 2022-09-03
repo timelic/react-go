@@ -10,6 +10,8 @@ import {
   Player,
   PlayingLifeCycle,
 } from "@types";
+import { Toast } from "@douyinfe/semi-ui";
+import { Piece } from "../components/board";
 
 // TODO 这里很多 on 可改成 once
 
@@ -24,9 +26,21 @@ export class WS {
    * 在服务器注册一个玩家
    */
   constructor() {
-    this.socket = io(`ws://localhost:${this.PORT}`);
-    this.socket.emit("register", { name });
-    this.onOnlinePlayer();
+    const tryConnect = () => {
+      this.socket = io(`ws://localhost:${this.PORT}`);
+      this.socket.emit("register", { name });
+      this.onOnlinePlayer();
+      this.init();
+    };
+    tryConnect();
+    // 每隔 3s 检查一下有没有连线上
+    setInterval(() => {
+      if (!this.socket?.connected) {
+        tryConnect();
+      } else {
+        this.hasInited = false;
+      }
+    }, 3000);
   }
   /**
    * init 写成 constructor 会有 bug
@@ -35,20 +49,17 @@ export class WS {
     if (this.hasInited) return;
     this.hasInited = true;
     this.changeLifeCycle(LifeCycle.Online);
+    // 等待游戏开始吧 or 对方进行一个拒绝
+    this.onStart();
   }
   /**
    * 接受所有在线玩家
    */
   private onOnlinePlayer() {
-    this.socket.on(
-      "online_players",
-      ({ onlinePlayers }: { onlinePlayers: Player[] }) => {
-        console.log({ onlinePlayers });
-        eventbus.emit("update:online_players", onlinePlayers); // 把信息存到 store
-        this.onInvite(); // 准备好接受邀请
-        this.onInviteResult();
-      }
-    );
+    this.socket.on("online_players", (onlinePlayers: Player[]) => {
+      eventbus.emit("update:online_players", onlinePlayers); // 把信息存到 store
+      this.onInvite(); // 准备好接受邀请
+    });
   }
   /**
    * 邀约：A 邀请 B玩游戏
@@ -56,14 +67,12 @@ export class WS {
   invite(opponentId: Player["id"]) {
     this.socket.emit("invite", opponentId);
     this.changeLifeCycle(LifeCycle.Inviting); // 生命周期 -> inviting
-    // 等待游戏开始吧 or 对方进行一个拒绝
-    this.onStart();
   }
   /**
    * 准备接受邀请
    */
   private onInvite() {
-    this.socket.once("invite_ask", ({ name }: Player) => {
+    this.socket.on("invite_ask", ({ name }: Player) => {
       // 思考要不要接受
       this.changeLifeCycle(LifeCycle.Considering);
       eventbus.emit("show_model", name); // 显示一个是否接受的模态框
@@ -77,29 +86,18 @@ export class WS {
     this.changeLifeCycle(LifeCycle.WaitingToStart);
   }
   /**
-   * 被接受 or 被拒绝
-   */
-  private onInviteResult() {
-    this.socket.on("invite_result", (result: boolean) => {
-      console.log(`this.socket.on("invite_result"`);
-      eventbus.emit("invite_result", result);
-      if (result) {
-        this.changeLifeCycle(LifeCycle.Playing);
-      } else {
-        this.changeLifeCycle(LifeCycle.Online);
-      }
-    });
-  }
-  /**
    * 服务器宣布开始游戏
+   * 被接受 or 被拒绝
    */
   private onStart() {
     this.socket.once("start", (resp: inviteResponse) => {
+      eventbus.emit("invite_result", resp.isAccepted);
       if (resp.isAccepted) {
         this.changeLifeCycle(LifeCycle.Playing);
         // 接受了 开始游戏
         // 分配黑白
         eventbus.emit("update:my_color", resp.colorAssigned);
+        console.log(resp.colorAssigned);
         if (resp.colorAssigned === PieceState.Black) {
           // 黑色 我可以下棋
           this.onCanTakeAction();
@@ -107,7 +105,16 @@ export class WS {
           // 白色 等待对面下棋
           this.onWaitingOpponent();
         }
+        Toast.success({
+          icon: <Piece color={resp.colorAssigned!} size={20} />,
+          content: `You have the ${resp.colorAssigned} chess.\nYou go ${
+            resp.colorAssigned === PieceState.Black ? "first" : "second"
+          }`,
+          duration: 5,
+          showClose: false,
+        });
       } else {
+        console.log("拒绝了");
         // 拒绝了
         this.changeLifeCycle(LifeCycle.Online);
       }
@@ -117,10 +124,8 @@ export class WS {
    * 我方落子
    */
   action(i: number, j: number) {
-    this.socket.emit("action", {
-      i,
-      j,
-    });
+    console.log("ws.action", i, j);
+    this.socket.emit("action", i, j);
     this.changePlayingLifeCycle(PlayingLifeCycle.WaitingResp);
     // 设定一个状态不准落子了
     eventbus.emit("update:is_my_turn", false);
@@ -148,21 +153,18 @@ export class WS {
    * 监听局面变化
    */
   private onBoardChange() {
-    this.socket.once(
-      "board_change",
-      ({ board, isCauseByMe }: BoardChangeInfo) => {
-        // 更新局面
-        eventbus.emit("update:board", { board });
-        if (isCauseByMe) {
-          // 我落子导致的
-          this.changePlayingLifeCycle(PlayingLifeCycle.WaitingOpponent);
-          this.onBoardChange(); // 继续监听局面变化
-        } else {
-          // 对方落子导致的
-          this.changePlayingLifeCycle(PlayingLifeCycle.Thinking);
-        }
+    this.socket.once("sync", ({ board, isCauseByMe }: BoardChangeInfo) => {
+      // 更新局面
+      eventbus.emit("update:board", board);
+      if (isCauseByMe) {
+        // 我落子导致的
+        this.changePlayingLifeCycle(PlayingLifeCycle.WaitingOpponent);
+        this.onBoardChange(); // 继续监听局面变化
+      } else {
+        // 对方落子导致的
+        this.changePlayingLifeCycle(PlayingLifeCycle.Thinking);
       }
-    );
+    });
   }
   /**
    * 修改生命周期
