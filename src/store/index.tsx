@@ -8,7 +8,7 @@ import {
   PlayingLifeCycle,
 } from "@types";
 import { cloneDeep } from "lodash";
-import { createContext, FC, useState } from "react";
+import { createContext, FC, useEffect, useState } from "react";
 import { eventbus } from "@api";
 
 const ROW_AMOUNT = 19;
@@ -81,7 +81,6 @@ export const Store: FC<{
     setMe,
   };
   setStoreActions(defaultContextValue);
-
   return <ctx.Provider value={defaultContextValue}>{children}</ctx.Provider>;
 };
 
@@ -89,6 +88,8 @@ export const Store: FC<{
  * 设置仓库的 action ，使得可以被外界的 ts 修改
  */
 function setStoreActions(ctx: ContextType) {
+  if (hasSetStoreActions) return;
+  hasSetStoreActions = true;
   eventbus.on("update:board", (board: Board) => {
     ctx.setBoard(board);
   });
@@ -119,3 +120,4 @@ function setStoreActions(ctx: ContextType) {
     ctx.setMe(me);
   });
 }
+let hasSetStoreActions = false;

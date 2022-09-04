@@ -40,3 +40,9 @@ export interface BoardChangeInfo {
   board: Board;
   isCauseByMe: boolean;
 }
+
+export type Listener = {
+  event: string;
+  cb: (...args: any[]) => void;
+  aliveCycles: (LifeCycle | PlayingLifeCycle)[] | "all";
+};
