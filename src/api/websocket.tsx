@@ -58,8 +58,6 @@ export class WS {
     console.log("ws.action", i, j);
     this.socket.emit("action", i, j);
     changePlayingLifeCycle(PlayingLifeCycle.WaitingResp);
-    // 设定一个状态不准落子了
-    eventbus.emit("update:is_my_turn", false);
   }
 }
 

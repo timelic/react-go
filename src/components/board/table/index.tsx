@@ -1,15 +1,23 @@
 import { FC, useContext } from "react";
-import { LifeCycle, PieceState, PlayingLifeCycle } from "@types";
-import { canAction, shouldShowStar, updateTable } from "@utils";
+import { BoardChangeInfo, PieceState } from "@types";
+import { canAction, shouldShowStar } from "@utils";
 import { Block } from "../";
 import { ctx } from "@store";
-import { cloneDeep } from "lodash";
 import { ws } from "@api";
 import "./index.scss";
 import classNames from "classnames";
 
+function shouldShowOrder(
+  { pos }: BoardChangeInfo["lastAction"],
+  i: number,
+  j: number,
+  color: PieceState
+) {
+  return pos.i === i && pos.j === j && color !== PieceState.None;
+}
+
 export const Table: FC = () => {
-  const { board, lifeCycle, playingLifeCycle } = useContext(ctx);
+  const { board, lifeCycle, playingLifeCycle, lastAction } = useContext(ctx);
 
   /**
    * 点击下棋
@@ -42,6 +50,14 @@ export const Table: FC = () => {
               pieceState={board[i][j]}
               handleClick={handleClick(i, j)}
               showStar={shouldShowStar(i, j)}
+              orderInfo={{
+                showOrder: shouldShowOrder(lastAction, i, j, board[i][j]),
+                order: lastAction.order,
+                color:
+                  board[i][j] === PieceState.Black
+                    ? PieceState.White
+                    : PieceState.Black,
+              }}
             />
           ))}
         </div>

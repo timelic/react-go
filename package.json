@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@douyinfe/semi-icons": "^2.18.2",
     "@douyinfe/semi-ui": "^2.17.1",
     "classnames": "^2.3.1",
     "eventemitter3": "^4.0.7",

@@ -64,25 +64,14 @@ const onStart: Listener = {
 };
 
 /**
- * 轮到我方落子
- */
-const onCanTakeAction: Listener = {
-  event: "can_take_action",
-  cb: () => {
-    // 设定一个状态可以落子
-    eventbus.emit("update:is_my_turn", true);
-  },
-  aliveCycles: [PlayingLifeCycle.WaitingOpponent],
-};
-
-/**
  * 监听局面变化
  */
 const onBoardChange: Listener = {
   event: "sync",
-  cb: ({ board, isCauseByMe }: BoardChangeInfo) => {
+  cb: ({ board, isCauseByMe, countdown, lastAction }: BoardChangeInfo) => {
     // 更新局面
     eventbus.emit("update:board", board);
+    eventbus.emit("update:last_action", lastAction);
     if (isCauseByMe) {
       // 我落子导致的
       changePlayingLifeCycle(PlayingLifeCycle.WaitingOpponent);
@@ -90,6 +79,7 @@ const onBoardChange: Listener = {
       // 对方落子导致的
       changePlayingLifeCycle(PlayingLifeCycle.Thinking);
     }
+    eventbus.emit("sync_countdown", countdown);
   },
   aliveCycles: [PlayingLifeCycle.WaitingResp, PlayingLifeCycle.WaitingOpponent],
 };
@@ -99,5 +89,4 @@ export const listeners: Listener[] = [
   onInvite,
   onStart,
   onBoardChange,
-  onCanTakeAction,
 ];

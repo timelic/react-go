@@ -5,35 +5,35 @@
   border-radius: 50%;
   z-index: 10;
   transform: translate(0.5px, 0.5px);
-}
 
-.black {
-  background: radial-gradient(circle at 50% 120%,
-      #979797,
-      #929292 10%,
-      #2f2f30 80%,
-      #062745 100%);
-  filter: brightness(0.8) contrast(1.2);
-  box-shadow: 0 0 8px -5px black, 0 0 2px 0 #3d3d3d;
-}
+  &.black {
+    background: radial-gradient(circle at 50% 120%,
+        #979797,
+        #929292 10%,
+        #2f2f30 80%,
+        #062745 100%);
+    filter: brightness(0.8) contrast(1.2);
+    box-shadow: 0 0 8px -5px black, 0 0 2px 0 #3d3d3d;
+  }
 
-.black:before {
-  content: "";
-  position: absolute;
-  top: 1%;
-  left: 5%;
-  width: 90%;
-  height: 90%;
-  border-radius: 50%;
-  background: radial-gradient(circle at 50% 0px,
-      #a3a3a3,
-      rgba(255, 255, 255, 0) 58%);
-  filter: blur(3px);
-  z-index: 2;
-}
+  &.black:before {
+    content: "";
+    position: absolute;
+    top: 1%;
+    left: 5%;
+    width: 90%;
+    height: 90%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 0px,
+        #a3a3a3,
+        rgba(255, 255, 255, 0) 58%);
+    filter: blur(3px);
+    z-index: 2;
+  }
 
-.white {
-  background-color: white;
-  background: radial-gradient(circle at 50% 30%, #fff, #ddd);
-  box-shadow: 0 0 8px -5px black, 0 0 3px 0 #b1b1b1;
+  &.white {
+    background-color: white;
+    background: radial-gradient(circle at 50% 30%, #fff, #ddd);
+    box-shadow: 0 0 8px -5px black, 0 0 3px 0 #b1b1b1;
+  }
 }

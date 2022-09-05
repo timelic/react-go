@@ -39,6 +39,11 @@ export enum PlayingLifeCycle {
 export interface BoardChangeInfo {
   board: Board;
   isCauseByMe: boolean;
+  countdown: {
+    me: number; // 秒
+    opponent: number;
+  };
+  lastAction: { pos: { i: number; j: number }; order: number };
 }
 
 export type Listener = {

@@ -6,6 +6,7 @@ import {
   Player,
   LifeCycle,
   PlayingLifeCycle,
+  BoardChangeInfo,
 } from "@types";
 import { cloneDeep } from "lodash";
 import { createContext, FC, useEffect, useState } from "react";
@@ -30,6 +31,8 @@ interface ContextType {
   setOpponent: (data: ContextType["opponent"]) => void;
   me: Player;
   setMe: (data: ContextType["me"]) => void;
+  lastAction: BoardChangeInfo["lastAction"];
+  setLastAction: (data: ContextType["lastAction"]) => void;
 }
 
 export const initialBoard = new Array(ROW_AMOUNT)
@@ -61,6 +64,10 @@ export const Store: FC<{
     id: "",
     name: "Me",
   });
+  const [lastAction, setLastAction] = useState<BoardChangeInfo["lastAction"]>({
+    pos: { i: -1, j: -1 },
+    order: 0,
+  });
 
   const defaultContextValue: ContextType = {
     history,
@@ -79,6 +86,8 @@ export const Store: FC<{
     setOpponent,
     me,
     setMe,
+    lastAction,
+    setLastAction,
   };
   setStoreActions(defaultContextValue);
   return <ctx.Provider value={defaultContextValue}>{children}</ctx.Provider>;
@@ -118,6 +127,9 @@ function setStoreActions(ctx: ContextType) {
   });
   eventbus.on("update:me", (me: Player) => {
     ctx.setMe(me);
+  });
+  eventbus.on("update:last_action", (action: BoardChangeInfo["lastAction"]) => {
+    ctx.setLastAction(action);
   });
 }
 let hasSetStoreActions = false;
